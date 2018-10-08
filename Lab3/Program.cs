@@ -119,6 +119,10 @@ namespace Lab3
     /// </summary>
     void Print();
   }
+
+  interface IComparable {
+    int CompareTo(object obj);
+  }
   class Program
   {
     static void Main(string[] args)
