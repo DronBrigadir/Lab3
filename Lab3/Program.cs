@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lab3
-{
+namespace Lab3 {
+  // Figures classes and interface IPrint
+  #region
   /// <summary>
   /// Geometry figure class
   /// </summary>
@@ -127,7 +128,10 @@ namespace Lab3
     /// </summary>
     void Print();
   }
+  #endregion  //  // 
 
+  // SparseMatrix
+  #region
   public interface ISparseMatrixCheckEmpty<T> {
     T getEmptyElement();
     bool checkEmptyElement(T element);
@@ -160,7 +164,9 @@ namespace Lab3
     /// maximum number of aplicate elements
     /// </summary>
     int maxZ;
-
+    /// <summary>
+    /// realization interface
+    /// </summary>
     ISparseMatrixCheckEmpty<T> checkEmpty;
 
     public SparseMatrix(int px, int py, int pz,
@@ -184,11 +190,15 @@ namespace Lab3
         throw new ArgumentOutOfRangeException("z", "z=" + z + "go beyond");
       }
     }
-
+    /// <summary>
+    /// formation key
+    /// </summary>
     string DictKey(int x, int y, int z) {
       return x.ToString() + "_" + y.ToString() + "_" + z.ToString();
     }
-
+    /// <summary>
+    /// indexer to access the data
+    /// </summary>
     public T this[int x, int y, int z] {
       set {
         CheckBounds(x, y, z);
@@ -232,6 +242,133 @@ namespace Lab3
     }
 
   }
+  #endregion
+
+  // SimpleList, SimpleStack
+  #region
+  public class SimpleListItem<T> {
+    public T data { get; set; }
+
+    public SimpleListItem<T> next { get; set; }
+
+    public SimpleListItem(T param) {
+      this.data = param;
+    }
+
+  }
+
+  public class SimpleList<T> : IEnumerable<T> where T : IComparable {
+
+    protected SimpleListItem<T> first = null;
+    protected SimpleListItem<T> last = null;
+
+    int _count;
+    public int Count {
+      get { return _count; }
+      protected set { _count = value; }
+    }
+
+    public void Add(T element) {
+      SimpleListItem<T> newItem = new SimpleListItem<T>(element);
+      this.Count++;
+
+      if (last == null)
+      {
+        this.first = newItem;
+        this.last = newItem;
+      }
+      else {
+        this.last.next = newItem;
+        this.last = newItem;
+      }
+    }
+
+    public SimpleListItem<T> GetItem(int number) {
+      if (number < 0 || number >= this.Count) {
+        throw new Exception("Out of bounds");
+      }
+
+      SimpleListItem<T> current = this.first;
+      for (int i = 0; i < number; i++) {
+        current = current.next;
+      }
+
+      return current;
+    }
+
+    public T Get(int number) {
+      return GetItem(number).data;
+    }
+
+    public IEnumerator<T> GetEnumerator() {
+      SimpleListItem<T> current = this.first;
+
+      while (current != null) {
+        yield return current.data;
+        current = current.next;
+      }
+    }
+
+    public void Sort() { Sort(0, this.Count - 1); }
+    private void Sort(int low, int high) {
+      int i = low;
+      int j = high;
+      T x = Get((low + high) / 2);
+      do {
+        while (Get(i).CompareTo(x) < 0) ++i;
+        while (Get(j).CompareTo(x) > 0) --j;
+        if (i <= j) {
+          Swap(i, j);
+          i++;
+          j--;
+        }
+      } while (i <= j);
+
+      if (low < j) Sort(low, j);
+          if (i < high) Sort(i, high);
+    }
+
+    private void Swap(int i, int j) {
+      SimpleListItem<T> ci = GetItem(i);
+      SimpleListItem<T> cj = GetItem(j);
+      T temp = ci.data;
+      ci.data = cj.data;
+      cj.data = temp;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() {
+      return GetEnumerator();
+    }
+  }
+
+  class SimpleStack<T> : SimpleList<T> where T : IComparable {
+    public void Push(T item) { Add(item); }
+
+    public T Pop() {
+      T res = default(T); // default value for the following type
+      
+      if (this.Count == 0) {
+        return res;
+      }
+
+      if (this.Count == 1) {
+        res = this.first.data;
+        this.first = null;
+        this.last = null;
+      }
+      else {
+        SimpleListItem<T> NewLast = this.GetItem(this.Count - 2);
+        res = NewLast.next.data;
+        this.last = NewLast;
+        NewLast.next = null;
+      }
+
+      this.Count--;
+      return res;
+    }
+  }
+#endregion
+
   class Program
   {
     static void Main(string[] args) {
@@ -271,6 +408,15 @@ namespace Lab3
       matrix[1, 1, 1] = s;
       matrix[2, 2, 2] = c;
       Console.WriteLine(matrix.ToString());
+
+      SimpleStack<Figure> stack = new SimpleStack<Figure>();
+      stack.Push(r);
+      stack.Push(s);
+      stack.Push(c);
+
+      foreach (Figure f in stack) {
+        Console.WriteLine(f);
+      }
 
       Console.Read();
     }
